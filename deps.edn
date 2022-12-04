@@ -1,3 +1,4 @@
-{:deps
+{:paths ["src"]
+ :deps
  {org.clojure/clojure       {:mvn/version "1.10.0"}
   org.clojure/clojurescript {:mvn/version "1.11.60"}}}
