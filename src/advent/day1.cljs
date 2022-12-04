@@ -4,7 +4,7 @@
 
 ;; https://adventofcode.com/2022/day/1
 
-(defn solve [input]
+(defn solve-p1 [input]
   (->> input
        (string/split-lines)
        (partition-by empty?)
@@ -13,6 +13,19 @@
                           (map js/parseInt)
                           (reduce +))))
        (apply max)))
+
+(defn solve-p2 [input]
+  (->> input
+       (string/split-lines)
+       (partition-by empty?)
+       (filter #(not (every? empty? %)))
+       (map (fn [xs] (->> xs
+                          (map js/parseInt)
+                          (reduce +))))
+       (sort)
+       (reverse)
+       (take 3)
+       (reduce +)))
 
 (def testinput "1000
 2000
@@ -31,5 +44,6 @@
 10000")
 
 (comment 
-  (solve testinput)
-  (solve (load-input 1)))
+  (solve-p1 testinput)
+  (solve-p1 (load-input 1))
+  (solve-p2 (load-input 1)))
