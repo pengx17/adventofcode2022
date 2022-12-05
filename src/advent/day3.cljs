@@ -1,6 +1,5 @@
 (ns advent.day3
   (:require [advent.io :refer [load-input]]
-            [clojure.set :as set]
             [clojure.string :as string]))
 
 ;; https://adventofcode.com/2022/day/3
@@ -18,12 +17,12 @@ CrZsJsPPZsGzwwsLwLmpwMDw
   [(subs row 0 (/ (count row) 2))
    (subs row (/ (count row) 2))])
 
-(defn find-duplicate 
+(defn find-duplicate
   ([xs ys]
    (let [set-xs (set xs)]
      (set (filter set-xs ys))))
   ([xs ys zs]
-   (find-duplicate zs (find-duplicate xs ys))))
+   (find-duplicate (find-duplicate xs ys) zs)))
 
 (defn ->score [c]
   (let [code (.charCodeAt c 0)
