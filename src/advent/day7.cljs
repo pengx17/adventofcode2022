@@ -93,10 +93,11 @@ $ ls
         dir-size (map (fn [dir] [dir (get-dir-size stats dir)]) dirs)
         dir->size (into {} dir-size)
         root-size (dir->size ["/"])
-        options (filter some? (map (fn [size]
-                               (let [after-delete (+ (- 70000000 root-size) size)]
-                                 (when (> after-delete 30000000) size)))
-                             (vals dir->size)))]
+        options (->> (map (fn [size]
+                            (let [after-delete (+ (- 70000000 root-size) size)]
+                              (when (> after-delete 30000000) size)))
+                          (vals dir->size))
+                     (filter some?))]
     (reduce min options)))
 
 (comment
