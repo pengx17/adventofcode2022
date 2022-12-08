@@ -1,7 +1,5 @@
 (ns advent.day6
-  (:require [cljs.tools.reader :refer [read-string]]
-            [clojure.string :as string]
-            [advent.io :refer [load-input]]))
+  (:require [advent.io :refer [load-input]]))
 
 ;; https://adventofcode.com/2022/day/5
 
