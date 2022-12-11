@@ -173,13 +173,13 @@ noop")
 
 (defn solve-p2 [input]
   (map string/join (partition 40
-                  (let [rec (register-positions input)]
-                    (for [i (range 1 241)]
-                      (let [pos (nth rec (dec i))
-                            i' (mod i 40)]
-                        (if (and (>= i' pos) (< i' (+ pos 3)))
-                          "#"
-                          ".")))))))
+                              (let [rec (register-positions input)]
+                                (for [i (range 1 241)]
+                                  (let [pos (nth rec (dec i))
+                                        i' (mod i 40)]
+                                    (if (and (>= i' pos) (< i' (+ pos 3)))
+                                      "#"
+                                      ".")))))))
 
 (comment
   (solve-p1 (load-input 10))
