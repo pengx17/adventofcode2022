@@ -38,6 +38,7 @@ abdefghi")
           t (->level (m to))]
       (<= (- t f) 1))))
 
+;; based on https://en.wikipedia.org/wiki/Pathfinding#Sample_algorithm
 (defn solve-p1 [input]
   (let [[m] (->map input)
         S (get-special m "S")
