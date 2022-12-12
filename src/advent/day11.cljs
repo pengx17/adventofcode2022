@@ -66,7 +66,7 @@ Monkey 3:
         (recur (rest monkeys) new-dest' (update inspects id #(+ no %))))
       [new-dest inspects])))
 
-(defn run-round-2 [monkeys items inspects]
+(defn run-round-2 [monkeys items inspects lcm]
   (loop [monkeys monkeys
          new-dest items
          inspects inspects]
@@ -75,10 +75,11 @@ Monkey 3:
             no (count (get new-dest id))
             new-dest' (reduce (fn [accum item]
                                 (let [a (operation item)
-                                      d (mod a divisible)
+                                      b (mod a lcm)
+                                      d (mod b divisible)
                                       dest (if (zero? d) truthy falsy)]
                                   (update accum
-                                          dest #(concat % [a]))))
+                                          dest #(concat % [b]))))
                               (dissoc new-dest id)
                               (get new-dest id))]
         (recur (rest monkeys) new-dest' (update inspects id #(+ no %))))
@@ -97,20 +98,23 @@ Monkey 3:
           (recur (inc c) items inspects))
         (reduce * (take 2 (reverse (sort (vals inspects)))))))))
 
-;; fixme: number overflow
 (defn solve-p2 [input]
   (let [monkeys (->> (string/split-lines input)
                      (partition-all 7)
                      (map model-monkey))
-        items (into {} (map (fn [monkey] [(:id monkey) (:items monkey)]) monkeys))]
+        items (into {} (map (fn [monkey] [(:id monkey) (:items monkey)]) monkeys))
+        lcm (->> monkeys
+                 (map #(:divisible %))
+                 (reduce * 1))]
     (loop [c 0
            items items
            inspects {}]
-      (if (< c 20)
-        (let [[items inspects] (run-round-2 monkeys items inspects)]
+      (if (< c 10000)
+        (let [[items inspects] (run-round-2 monkeys items inspects lcm)]
           (recur (inc c) items inspects))
         (do (prn inspects)
             (reduce * (take 2 (reverse (sort (vals inspects))))))))))
 
 (comment (solve-p1 (load-input 11))
-         (solve-p2 test-input))
+         (solve-p2 test-input)
+         (solve-p2 (load-input 11)))
