@@ -30,38 +30,34 @@
 [1,[2,[3,[4,[5,6,0]]]],8,9]")
 
 
-
-(defn do-compare [left right & {:keys [compare-single?] :as opts}]
+(defn do-compare [left right]
   (let [res (cond (and (int? left) (int? right))
-                  (<= left right)
+                  (compare left right)
 
                   (and (coll? left) (coll? right))
                   (loop [left' left
                          right' right]
                     (cond
-                      (and (= :left compare-single?) (empty? left'))
-                      true
+                      (and (empty? left') (seq right'))
+                      -1
 
-                      (and (= :right compare-single?) (empty? right'))
-                      true
+                      (and (empty? left') (empty? right'))
+                      0
 
-                      (and (seq left') (not (seq right')))
-                      false
+                      (and (seq left') (empty? right'))
+                      1
 
-                      (not (seq left'))
-                      true
-
-                      (do-compare (first left') (first right') opts)
-                      (recur (rest left') (rest right'))
-
-                      :else false))
+                      :else
+                      (case (do-compare (first left') (first right'))
+                        -1 -1
+                        1 1
+                        0 (recur (rest left') (rest right')))))
 
                   (int? left)
-                  (do-compare [left] right {:compare-single? :left})
+                  (do-compare [left] right)
 
                   (int? right)
-                  (do-compare left [right] {:compare-single? :right}))]
-    (prn "comparing" left right res)
+                  (do-compare left [right]))]
     res))
 
 (defn solve-p1 [input]
@@ -69,10 +65,24 @@
        (partition-all 3)
        (map #(take 2 %))
        (map (fn [lines] (map read-string lines)))
-       (map-indexed (fn [idx lr] (if (apply do-compare lr) (inc idx) -1)))
+       (map-indexed (fn [idx lr] (if (= (apply do-compare lr) -1) (inc idx) -1)))
        (filter pos?)
        (#(do (prn %) %))
        (reduce +)))
 
+(defn solve-p2 [input]
+  (->> (string/split-lines input)
+       (partition-all 3)
+       (map #(take 2 %))
+       (mapcat (fn [lines] (map read-string lines)))
+       (concat [[[2]] [[6]]])
+       (sort-by identity do-compare)
+       (map-indexed (fn [idx item] [item idx]))
+       (into {})
+       (#(map (fn [k] (inc (% k))) [[[2]] [[6]]]))
+       (reduce *)))
+
 (comment (solve-p1 test-input)
-         (solve-p1 (load-input 13)))
+         (solve-p1 (load-input 13))
+         (solve-p2 test-input)
+         (solve-p2 (load-input 13)))
