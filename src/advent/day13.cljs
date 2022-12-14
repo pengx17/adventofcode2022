@@ -31,34 +31,33 @@
 
 
 (defn do-compare [left right]
-  (let [res (cond (and (int? left) (int? right))
-                  (compare left right)
+  (cond (and (int? left) (int? right))
+        (compare left right)
 
-                  (and (coll? left) (coll? right))
-                  (loop [left' left
-                         right' right]
-                    (cond
-                      (and (empty? left') (seq right'))
-                      -1
+        (and (coll? left) (coll? right))
+        (loop [left' left
+               right' right]
+          (cond
+            (and (empty? left') (seq right'))
+            -1
 
-                      (and (empty? left') (empty? right'))
-                      0
+            (and (empty? left') (empty? right'))
+            0
 
-                      (and (seq left') (empty? right'))
-                      1
+            (and (seq left') (empty? right'))
+            1
 
-                      :else
-                      (case (do-compare (first left') (first right'))
-                        -1 -1
-                        1 1
-                        0 (recur (rest left') (rest right')))))
+            :else
+            (case (do-compare (first left') (first right'))
+              -1 -1
+              1 1
+              0 (recur (rest left') (rest right')))))
 
-                  (int? left)
-                  (do-compare [left] right)
+        (int? left)
+        (do-compare [left] right)
 
-                  (int? right)
-                  (do-compare left [right]))]
-    res))
+        (int? right)
+        (do-compare left [right])))
 
 (defn solve-p1 [input]
   (->> (string/split-lines input)
@@ -86,3 +85,4 @@
          (solve-p1 (load-input 13))
          (solve-p2 test-input)
          (solve-p2 (load-input 13)))
+
