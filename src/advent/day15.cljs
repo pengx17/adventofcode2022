@@ -26,7 +26,6 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
        (map int)
        (partition 2)))
 
-
 (defn dist [s b]
   (+ (abs (- (first s) (first b)))
      (abs (- (second s) (second b)))))
@@ -40,20 +39,16 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
   (->> (map second lines)
        (set)))
 
-(defn in-range? [[s-pos d] pos]
-  (<= (dist s-pos pos) d))
-
-(defn in-the-range? [[l r] x] 
+(defn in-range? [[l r] x]
   (and (<= l x) (>= r x)))
 
 (defn intersect-line [[[x y] d] lno]
   (let [dx (- d (abs (- lno y)))]
     (when-not (neg? dx) [(- x dx) (+ x dx)])))
 
-
 (defn merge-intersect [[x0 x1] [x2 x3]]
   (if (or (> x0 (inc x3)) (< (inc x1) x2))
-    nil [[(min x0 x2) (max x1 x3)]]))
+    nil [(min x0 x2) (max x1 x3)]))
 
 (comment (merge-intersect [2 3] [4 5])
          (merge-intersect [2 2] [4 5])
@@ -65,22 +60,9 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
   (->> (map (fn [pair] [(first pair) (apply dist pair)]) lines)
        (into {})))
 
-(defn solve-p1-naive [input lno]
-  (let [lines (parse-input input)
-        beacons (lines->beacons lines)
-        sensor-map (lines->sensor-map lines)]
-    (loop [s -10000000
-           c 0]
-      (if (< s 10000000)
-        (recur (inc s)
-               (if (and (some #(in-range? % [s lno]) sensor-map)
-                        (not (beacons [s lno])))
-                 (inc c) c))
-        c))))
-
 (defn merge-all-ranges [ranges]
-  (prn ranges)
-  (let [sorted (sort-by first ranges)]
+  (let [ranges (filter some? ranges)
+        sorted (sort-by first ranges)]
     (loop [last-merged (first sorted)
            sorted sorted
            result []]
@@ -102,7 +84,7 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
         ranges (->> (map #(intersect-line % lno) sensor-map)
                     (merge-all-ranges))
         beacons-at-line (filter (fn [beacon]
-                                  (some #(if (in-the-range? % (first beacon)) beacon nil) ranges)) beacons)]
+                                  (some #(if (in-range? % (first beacon)) beacon nil) ranges)) beacons)]
     (- (->> ranges
             (map #(- (second %) (first %)))
             (reduce +)
@@ -128,25 +110,28 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
                            :else "."))))))
 
 (defn solve-p2 [input max-ln]
-  (let [lines (parse-input input)
+  (let [start-time (js/performance.now)
+        lines (parse-input input)
         sensor-map (lines->sensor-map lines)]
     (loop [lno 0]
       (if (= lno (inc max-ln))
         nil
         (let [ranges (->> (map #(intersect-line % lno) sensor-map)
                           (merge-all-ranges))]
-          (prn ranges)
           (if (= 2 (count ranges))
-            ranges
-            ;;[(inc (last (first (sort-by first ranges)))) lno]
+            (do
+              (prn "timespent" (- (js/performance.now) start-time) "ms")
+              (+ lno (-> ranges
+                         (first)
+                         (second)
+                         (inc)
+                         (* 4000000))))
             (recur (inc lno))))))))
 
 (comment (parse-input test-input)
-         (solve-p1-naive test-input 10) ;; 26
-         (solve-p1-naive (load-input 15) 2000000) ;; 5878678
          (solve-p1 test-input 10) ;; 26
          (solve-p1 (load-input 15) 2000000)
-         
+
          (solve-p2 test-input 20)
          (solve-p2 (load-input 15) 4000000)
          
