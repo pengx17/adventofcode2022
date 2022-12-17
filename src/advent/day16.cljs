@@ -55,23 +55,26 @@ Valve JJ has flow rate=21; tunnel leads to valve II")
                   :when (not= x y)]
               [x y])))
 
-(defn r-visit [from-to->path z-costs visited remaining from]
-  (let [nexts (->> (keys from-to->path)
-                   (filter #(= (first %) from))
-                   (map second)
-                   (remove visited)
-                   (remove z-costs)
-                   (map (fn [next] [next (- remaining (count (from-to->path [from next])))]))
-                   (remove #(neg? (second %))))]
-    (if (seq nexts)
-      (mapcat (fn [[next n-remaining]]
-                (->> (r-visit from-to->path z-costs (conj visited next) n-remaining next)
-                     (map #(into [[next n-remaining]] %))))
-              nexts)
-      [[]])))
+(def r-visit
+  (memoize
+   (fn [from-to->path costs visited remaining from]
+     (let [nexts (->> (keys from-to->path)
+                      (filter #(= (first %) from))
+                      (map second)
+                      (remove visited)
+                      (remove #(zero? (costs %)))
+                      (map (fn [next] [next (- remaining (count (from-to->path [from next])))]))
+                      (remove #(neg? (second %))))]
+       (if (seq nexts)
+         (mapcat (fn [[next n-remaining]]
+                   (->> (r-visit from-to->path costs (conj visited next) n-remaining next)
+                        (map (fn [v] (+ v (* (costs next) n-remaining))))))
+                 nexts)
+         [0])))))
 
 (defn solve-p1 [input]
-  (let [lines (parse-input test-input)
+  (let [start-time (js/performance.now)
+        lines (parse-input input)
         from->tos (get-from->tos input)
         from-to->path (->> lines
                            (map first)
@@ -79,17 +82,13 @@ Valve JJ has flow rate=21; tunnel leads to valve II")
                            (map #(into [] %))
                            (map (fn [[from to]] [[from to] (find-path from->tos from to)]))
                            (into {}))
-        z-costs (->> (filter #(zero? (nth % 1)) lines)
-                     (map first)
-                     (into #{}))
         costs (->> (map drop-last lines)
                    (map vec)
                    (into {}))
-        candidates (r-visit from-to->path z-costs #{} 30 "AA")]
-    (->> candidates
-         (map #(map (fn [[node remaining]] (* remaining (costs node))) %))
-         (map #(reduce + %))
-         (apply max))))
+        result (->> (r-visit from-to->path costs #{} 30 "AA")
+                    (apply max))]
+    (prn "time: " (- (js/performance.now) start-time) "ms")
+    result))
 
 (comment (solve-p1 test-input)
          (solve-p1 (load-input 16)))
